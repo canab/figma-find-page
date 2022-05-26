@@ -1,0 +1,109 @@
+<p><input id="find_input" value=""></p>
+
+
+<style>
+	body {
+		font-family: system-ui;
+		font-size: 0.8em;
+	}
+	.list-item {
+		padding: 4px;
+	}
+	.list-item-sel {
+		background-color: cornflowerblue;
+	}
+</style>
+
+<div id="find_result">
+	<div id="default_template" class="list-item">List Item</div>
+	<div id="selected_template" class="list-item list-item-sel">Selected Item</div>
+</div>
+
+<script>
+	const inputElement = document.getElementById('find_input');
+	const resultElement = document.getElementById('find_result');
+
+	const defaultTemplate = document.getElementById("default_template");
+	const selectedTemplate = document.getElementById("selected_template");
+	clearResult();
+
+	inputElement.oninput = () => {
+		const text = String(inputElement.value).trim();
+		parent.postMessage({pluginMessage: {type: 'on_input', text}}, '*')
+	}
+
+	inputElement.onkeydown = (event) => {
+		// console.log(event.key);
+		switch (event.key) {
+			case "ArrowUp":
+				setSelection(-1);
+				break;
+			case "ArrowDown":
+				setSelection(+1);
+				break;
+			case "Enter":
+				openPage();
+				break;
+		}
+	}
+
+	onmessage = (event) => {
+		const msg = event.data.pluginMessage;
+		switch (msg.type)
+		{
+			case "search_result":
+				updateResult(msg.nodes);
+				break;
+		}
+	}
+
+	let selectedIndex = 0;
+
+	function setSelection(step)
+	{
+		let currentNode = resultElement.childNodes[selectedIndex];
+		if (currentNode)
+			currentNode.classList = defaultTemplate.classList;
+
+		selectedIndex += step;
+		currentNode = resultElement.childNodes[selectedIndex];
+		if (currentNode)
+			currentNode.classList = selectedTemplate.classList;
+	}
+
+	function openPage()
+	{
+		const node = resultElement.childNodes[selectedIndex];
+		const data = node["_data_"];
+		parent.postMessage({type: "on_open", data}, "*");
+	}
+
+	function updateResult(nodes)
+	{
+		while (resultElement.hasChildNodes()) {
+			resultElement.removeChild(resultElement.lastChild);
+		}
+
+		selectedIndex = 0;
+
+		for (let i = 0; i < nodes.length; i++) {
+			const node = nodes[i];
+			const item = defaultTemplate.cloneNode();
+			item.innerText = node.name;
+			item._data_ = node;
+			if (i === selectedIndex)
+				item.classList = selectedTemplate.classList;
+
+			resultElement.appendChild(item);
+		}
+	}
+
+	function clearResult()
+	{
+		while (resultElement.hasChildNodes()) {
+			resultElement.removeChild(resultElement.lastChild);
+		}
+	}
+
+	inputElement.focus();
+</script>

@@ -1,0 +1,16 @@
+{
+  "name": "find-page",
+  "version": "1.0.0",
+  "description": "Fast page navigation",
+  "main": "code.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "author": "",
+  "license": "",
+  "devDependencies": {
+    "@figma/plugin-typings": "*",
+    "typescript": "*"
+  }
+}
