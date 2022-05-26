@@ -1,22 +1,33 @@
-<p><input id="find_input" value=""></p>
-
-
 <style>
+	input {
+		width: 100%;
+	}
 	body {
+	}
+	.root {
 		font-family: system-ui;
 		font-size: 0.8em;
 	}
+	.list {
+		width: 100%;
+	}
 	.list-item {
-		padding: 4px;
+		padding: 2px;
 	}
 	.list-item-sel {
 		background-color: cornflowerblue;
 	}
 </style>
 
-<div id="find_result">
-	<div id="default_template" class="list-item">List Item</div>
-	<div id="selected_template" class="list-item list-item-sel">Selected Item</div>
+<div class="root">
+	<p>
+		<input id="find_input" value="">
+	</p>
+
+	<div id="find_result" class="list">
+		<div id="default_template" class="list-item">List Item</div>
+		<div id="selected_template" class="list-item list-item-sel">Selected Item</div>
+	</div>
 </div>
 
 <script>
@@ -44,6 +55,9 @@
 			case "Enter":
 				openPage();
 				break;
+			case "Escape":
+				parent.postMessage({pluginMessage: {type: "on_close"}}, "*");
+				break;
 		}
 	}
 
@@ -61,21 +75,27 @@
 
 	function setSelection(step)
 	{
+		const newIndex = selectedIndex + step;
+		if (newIndex < 0 || newIndex >= resultElement.childNodes.length)
+			return;
+
 		let currentNode = resultElement.childNodes[selectedIndex];
 		if (currentNode)
 			currentNode.classList = defaultTemplate.classList;
 
-		selectedIndex += step;
-		currentNode = resultElement.childNodes[selectedIndex];
-		if (currentNode)
+		currentNode = resultElement.childNodes[newIndex];
+		if (currentNode) {
+			selectedIndex = newIndex;
 			currentNode.classList = selectedTemplate.classList;
+			// currentNode.scrollIntoView();
+		}
 	}
 
 	function openPage()
 	{
 		const node = resultElement.childNodes[selectedIndex];
 		const data = node["_data_"];
-		parent.postMessage({type: "on_open", data}, "*");
+		parent.postMessage({pluginMessage: {type: "on_open", data}}, "*");
 	}
 
 	function updateResult(nodes)
