@@ -26,16 +26,14 @@ interface ItemData
 
 function onInput(text: unknown)
 {
-	console.log({text});
-
 	if (typeof (text) !== "string") {
-		figma.ui.postMessage({type: "search_result", nodes: []});
+		figma.ui.postMessage({type: "search_result", nodes: recentList});
 		return;
 	}
 
 	const query = text.toLowerCase().trim();
 	if (!query) {
-		figma.ui.postMessage({type: "search_result", nodes: []});
+		figma.ui.postMessage({type: "search_result", nodes: recentList});
 		return;
 	}
 
@@ -56,8 +54,21 @@ function onInput(text: unknown)
 function onOpen(data: ItemData)
 {
 	const page = figma.root.findChild(it => it.id === data.id);
-	if (page) {
-		figma.currentPage = page;
-		figma.closePlugin();
-	}
+	if (!page)
+		return;
+
+	figma.currentPage = page;
+
+	const recentIndex = recentList.findIndex(it => it.id === data.id);
+	if (recentIndex >= 0)
+		recentList.splice(recentIndex, 1);
+	recentList.unshift(data);
+	figma.clientStorage.setAsync("recentList", recentList)
+		.then(() => figma.closePlugin());
 }
+
+let recentList: ItemData[] = [];
+figma.clientStorage.getAsync("recentList").then(result => {
+	recentList = result || [];
+	figma.ui.postMessage({type: "search_result", nodes: recentList});
+});
