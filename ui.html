@@ -13,6 +13,11 @@
 	}
 	.list-item {
 		padding: 2px;
+		cursor: pointer;
+		border: 1px solid transparent;
+	}
+	.list-item:hover {
+		border: 1px solid #ccc;
 	}
 	.list-item-sel {
 		background-color: cornflowerblue;
@@ -32,7 +37,7 @@
 
 <script>
 	const inputElement = document.getElementById('find_input');
-	const resultElement = document.getElementById('find_result');
+	const pagesElement = document.getElementById('find_result');
 
 	const defaultTemplate = document.getElementById("default_template");
 	const selectedTemplate = document.getElementById("selected_template");
@@ -47,10 +52,10 @@
 		// console.log(event.key);
 		switch (event.key) {
 			case "ArrowUp":
-				setSelection(-1);
+				setSelection(selectedIndex - 1);
 				break;
 			case "ArrowDown":
-				setSelection(+1);
+				setSelection(selectedIndex + 1);
 				break;
 			case "Enter":
 				openPage();
@@ -72,18 +77,18 @@
 	}
 
 	let selectedIndex = 0;
+	let pageList = [];
 
-	function setSelection(step)
+	function setSelection(newIndex)
 	{
-		const newIndex = selectedIndex + step;
-		if (newIndex < 0 || newIndex >= resultElement.childNodes.length)
+		if (newIndex < 0 || newIndex >= pagesElement.childNodes.length)
 			return;
 
-		let currentNode = resultElement.childNodes[selectedIndex];
+		let currentNode = pagesElement.childNodes[selectedIndex];
 		if (currentNode)
 			currentNode.classList = defaultTemplate.classList;
 
-		currentNode = resultElement.childNodes[newIndex];
+		currentNode = pagesElement.childNodes[newIndex];
 		if (currentNode) {
 			selectedIndex = newIndex;
 			currentNode.classList = selectedTemplate.classList;
@@ -92,15 +97,17 @@
 
 	function openPage()
 	{
-		const node = resultElement.childNodes[selectedIndex];
+		const node = pagesElement.childNodes[selectedIndex];
 		const data = node["_data_"];
 		parent.postMessage({pluginMessage: {type: "on_open", data}}, "*");
 	}
 
 	function updateResult(nodes)
 	{
-		while (resultElement.hasChildNodes()) {
-			resultElement.removeChild(resultElement.lastChild);
+		pageList = nodes;
+
+		while (pagesElement.hasChildNodes()) {
+			pagesElement.removeChild(pagesElement.lastChild);
 		}
 
 		selectedIndex = 0;
@@ -109,18 +116,27 @@
 			const node = nodes[i];
 			const item = defaultTemplate.cloneNode();
 			item.innerText = node.name;
+			item.addEventListener("click", () => onItemClick(item));
 			item._data_ = node;
 			if (i === selectedIndex)
 				item.classList = selectedTemplate.classList;
 
-			resultElement.appendChild(item);
+			pagesElement.appendChild(item);
 		}
+	}
+
+	function onItemClick(item) {
+		const index = pageList.indexOf(item._data_);
+		if (index < 0)
+			return;
+		setSelection(index);
+		openPage();
 	}
 
 	function clearResult()
 	{
-		while (resultElement.hasChildNodes()) {
-			resultElement.removeChild(resultElement.lastChild);
+		while (pagesElement.hasChildNodes()) {
+			pagesElement.removeChild(pagesElement.lastChild);
 		}
 	}
 
