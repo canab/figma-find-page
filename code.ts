@@ -51,6 +51,9 @@ function onInput(text: unknown)
 	figma.ui.postMessage({type: "search_result", nodes: result});
 }
 
+const documentKey = figma.root.name;
+let recentList: ItemData[] = [];
+
 function onOpen(data: ItemData)
 {
 	const page = figma.root.findChild(it => it.id === data.id);
@@ -63,12 +66,11 @@ function onOpen(data: ItemData)
 	if (recentIndex >= 0)
 		recentList.splice(recentIndex, 1);
 	recentList.unshift(data);
-	figma.clientStorage.setAsync("recentList", recentList)
+	figma.clientStorage.setAsync(documentKey, recentList)
 		.then(() => figma.closePlugin());
 }
 
-let recentList: ItemData[] = [];
-figma.clientStorage.getAsync("recentList").then(result => {
+figma.clientStorage.getAsync(documentKey).then(result => {
 	recentList = result || [];
 	figma.ui.postMessage({type: "search_result", nodes: recentList});
 });
