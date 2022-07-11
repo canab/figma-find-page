@@ -1,39 +1,77 @@
 <style>
 	input {
-		width: 100%;
+		background-color: var(--figma-color-bg-secondary);
+		color: var(--figma-color-text);
+		border: 1px solid var(--figma-color-border);
+		min-height: 24px;
 	}
+
+	input:focus {
+		outline: none;
+	}
+
+	::-webkit-scrollbar {
+		width: 4px;
+	}
+
+	::-webkit-scrollbar-track {
+		background: var(--figma-color-bg);
+	}
+
+	::-webkit-scrollbar-thumb {
+		background: var(--figma-color-bg-secondary);
+	}
+
 	body {
 	}
+
 	.root {
 		font-family: system-ui;
 		font-size: 0.8em;
 	}
-	.list {
-		width: 100%;
-	}
+
 	.list-item {
 		padding: 2px;
 		cursor: pointer;
 		border: 1px solid transparent;
+		color: var(--figma-color-text);
 	}
+
 	.list-item:hover {
-		border: 1px solid darkslategray;
+		border: 1px solid var(--figma-color-border);
+		background-color: var(--figma-color-bg-hover);
 	}
+
 	.list-item-sel {
-		background-color: royalblue;
-		color: white;
+		background-color: var(--figma-color-bg-brand);
+		color: var(--figma-color-text-onbrand);
 	}
+
+	.list {
+		margin-top: 8px;
+		overflow-y: scroll;
+	}
+
+	.content {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		width: 100%;
+		height: 100%;
+	}
+
 </style>
 
 <div class="root">
-	<p>
-		<input id="find_input" value="">
-	</p>
 
-	<div id="find_result" class="list">
-		<div id="default_template" class="list-item">List Item</div>
-		<div id="selected_template" class="list-item list-item-sel">Selected Item</div>
+	<div class="content">
+		<input id="find_input" value="">
+		<div id="find_result" class="list">
+			<div id="default_template" class="list-item">List Item</div>
+			<div id="selected_template" class="list-item list-item-sel">Selected Item</div>
+		</div>
 	</div>
+
 </div>
 
 <script>
@@ -53,10 +91,10 @@
 		// console.log(event.key);
 		switch (event.key) {
 			case "ArrowUp":
-				setSelection(selectedIndex - 1);
+				setSelection(selectedIndex - 1, true);
 				break;
 			case "ArrowDown":
-				setSelection(selectedIndex + 1);
+				setSelection(selectedIndex + 1, true);
 				break;
 			case "Enter":
 				openPage();
@@ -80,7 +118,7 @@
 	let selectedIndex = 0;
 	let pageList = [];
 
-	function setSelection(newIndex)
+	function setSelection(newIndex, scroll)
 	{
 		if (newIndex < 0 || newIndex >= pagesElement.childNodes.length)
 			return;
@@ -94,6 +132,9 @@
 			selectedIndex = newIndex;
 			currentNode.classList = selectedTemplate.classList;
 		}
+
+		if (scroll && currentNode)
+			currentNode.scrollIntoView({block: "nearest"});
 	}
 
 	function openPage()
@@ -126,7 +167,8 @@
 		}
 	}
 
-	function onItemClick(item) {
+	function onItemClick(item)
+	{
 		const index = pageList.indexOf(item._data_);
 		if (index < 0)
 			return;

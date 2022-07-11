@@ -1,5 +1,5 @@
 // This shows the HTML page in "ui.html".
-figma.showUI(__html__);
+figma.showUI(__html__, { themeColors: true });
 figma.ui.onmessage = msg => {
     switch (msg.type) {
         case "on_input":
