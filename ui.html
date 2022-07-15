@@ -104,9 +104,11 @@
 		switch (event.key) {
 			case "ArrowUp":
 				setSelection(selectedIndex - 1, true);
+				event.preventDefault();
 				break;
 			case "ArrowDown":
 				setSelection(selectedIndex + 1, true);
+				event.preventDefault();
 				break;
 			case "Enter":
 				openPage();
