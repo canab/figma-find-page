@@ -124,7 +124,7 @@
 		switch (msg.type)
 		{
 			case "search_result":
-				updateResult(msg.nodes);
+				updateResult(msg.data);
 				break;
 		}
 	}
@@ -158,9 +158,9 @@
 		parent.postMessage({pluginMessage: {type: "on_open", data}}, "*");
 	}
 
-	function updateResult(nodes)
+	function updateResult(data)
 	{
-		pageList = nodes;
+		pageList = data.recent;
 
 		while (pagesElement.hasChildNodes()) {
 			pagesElement.removeChild(pagesElement.lastChild);

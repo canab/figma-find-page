@@ -21,15 +21,19 @@ function findPages(result, root, query) {
     for (let node of root.children) {
         if (node.type === "PAGE") {
             if (node.name.toLowerCase().includes(query)) {
-                result.push({ id: node.id, name: node.name });
+                result.push({
+                    id: node.id,
+                    name: node.name,
+                    type: "PAGE",
+                });
             }
         }
     }
 }
 const max_result = 50;
-const max_depth = 2;
+const max_depth = 1;
 let node_stat = 0;
-function findFrames(result, root, query, depth = 0) {
+function findFrames(result, page, root, query, depth = 0) {
     if (depth === 0) {
         node_stat = 0;
     }
@@ -38,25 +42,20 @@ function findFrames(result, root, query, depth = 0) {
         if (result.length > max_result) {
             return;
         }
-        if (node.type === "PAGE") {
-            if (depth < max_depth) {
-                findFrames(result, node, query, depth + 1);
-            }
-            continue;
-        }
-        if (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "COMPONENT_SET") {
+        if (node.type === "FRAME" ||
+            node.type === "COMPONENT" ||
+            node.type === "COMPONENT_SET") {
             if (node.name.toLowerCase().includes(query)) {
-                let prefix = "";
-                if (node.type === "FRAME") {
-                    prefix = "# ";
-                }
-                else {
-                    prefix = "◈ ";
-                }
-                result.push({ id: node.id, name: prefix + node.name });
+                result.push({
+                    pg_id: page.id,
+                    pg_name: page.name,
+                    id: node.id,
+                    name: node.name,
+                    type: node.type,
+                });
             }
-            if (depth < max_depth) {
-                findFrames(result, node, query, depth + 1);
+            if (depth + 1 < max_depth) {
+                findFrames(result, page, node, query, depth + 1);
             }
         }
     }
@@ -77,7 +76,9 @@ function onInput(text) {
     const result = [];
     findPages(result, figma.root, query);
     const time = Date.now();
-    findFrames(result, figma.root, query);
+    for (let page of figma.root.children) {
+        findFrames(result, page, page, query);
+    }
     console.log(`time: ${Date.now() - time}ms`);
     figma.ui.postMessage({ type: "search_result", nodes: result });
 }
@@ -99,6 +100,9 @@ function onOpen(data) {
 }
 figma.clientStorage.getAsync(documentKey).then(result => {
     recentList = result || [];
-    figma.ui.postMessage({ type: "search_result", nodes: recentList });
+    const data = {
+        recent: recentList,
+    };
+    figma.ui.postMessage({ type: "search_result", data });
 });
 console.log("run");
