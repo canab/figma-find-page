@@ -95,13 +95,13 @@ function findFrames(result: ItemData[],
 function onInput(text: unknown)
 {
 	if (typeof (text) !== "string") {
-		figma.ui.postMessage({type: "search_result", nodes: recentList});
+		figma.ui.postMessage({type: "search_result", data: {recent: recentList}});
 		return;
 	}
 
 	const query = text.toLowerCase().trim();
 	if (!query) {
-		figma.ui.postMessage({type: "search_result", nodes: recentList});
+		figma.ui.postMessage({type: "search_result", data: {recent: recentList}});
 		return;
 	}
 

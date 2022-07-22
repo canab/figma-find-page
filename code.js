@@ -59,12 +59,12 @@ function findFrames(result, page, root, query, depth = 0) {
 }
 function onInput(text) {
     if (typeof (text) !== "string") {
-        figma.ui.postMessage({ type: "search_result", nodes: recentList });
+        figma.ui.postMessage({ type: "search_result", data: { recent: recentList } });
         return;
     }
     const query = text.toLowerCase().trim();
     if (!query) {
-        figma.ui.postMessage({ type: "search_result", nodes: recentList });
+        figma.ui.postMessage({ type: "search_result", data: { recent: recentList } });
         return;
     }
     const pages = [];
