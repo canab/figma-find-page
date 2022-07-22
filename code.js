@@ -79,6 +79,7 @@ function onInput(text) {
     figma.ui.postMessage({ type: "search_result", data: { pages, layers } });
 }
 const documentKey = figma.root.name;
+const storageVersion = 1;
 let recentList = [];
 function onOpen(data) {
     const page = figma.root.findChild(it => it.id === data.id);
@@ -86,16 +87,26 @@ function onOpen(data) {
         return;
     }
     figma.currentPage = page;
+    addToRecent(data);
+}
+function addToRecent(data) {
     const recentIndex = recentList.findIndex(it => it.id === data.id);
     if (recentIndex >= 0) {
         recentList.splice(recentIndex, 1);
     }
     recentList.unshift(data);
-    figma.clientStorage.setAsync(documentKey, recentList)
+    const storageData = {
+        version: storageVersion,
+        recent: recentList,
+    };
+    figma.clientStorage.setAsync(documentKey, storageData)
         .then(() => figma.closePlugin());
 }
-figma.clientStorage.getAsync(documentKey).then(result => {
-    recentList = result || [];
+figma.clientStorage.getAsync(documentKey).then((result) => {
+    var _a;
+    if ((result === null || result === void 0 ? void 0 : result.version) !== storageVersion)
+        return;
+    recentList = (_a = result.recent) !== null && _a !== void 0 ? _a : [];
     const data = {
         recent: recentList,
     };

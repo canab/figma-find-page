@@ -32,6 +32,12 @@ interface ItemData
 	pg_name?: string;
 }
 
+interface StorageData
+{
+	version?: number;
+	recent?: ItemData[];
+}
+
 function findPages(result: ItemData[], root: BaseNodeMixin & ChildrenMixin, query: string)
 {
 	for (let node of root.children) {
@@ -118,6 +124,7 @@ function onInput(text: unknown)
 }
 
 const documentKey = figma.root.name;
+const storageVersion = 1;
 let recentList: ItemData[] = [];
 
 function onOpen(data: ItemData)
@@ -128,18 +135,28 @@ function onOpen(data: ItemData)
 	}
 
 	figma.currentPage = page;
+	addToRecent(data)
+}
 
+function addToRecent(data: ItemData)
+{
 	const recentIndex = recentList.findIndex(it => it.id === data.id);
 	if (recentIndex >= 0) {
 		recentList.splice(recentIndex, 1);
 	}
 	recentList.unshift(data);
-	figma.clientStorage.setAsync(documentKey, recentList)
+	const storageData: StorageData = {
+		version: storageVersion,
+		recent: recentList,
+	}
+	figma.clientStorage.setAsync(documentKey, storageData)
 		.then(() => figma.closePlugin());
 }
 
-figma.clientStorage.getAsync(documentKey).then(result => {
-	recentList = result || [];
+figma.clientStorage.getAsync(documentKey).then((result: StorageData) => {
+	if (result?.version !== storageVersion)
+		return;
+	recentList = result.recent ?? [];
 	const data: ISearchData = {
 		recent: recentList,
 	}
