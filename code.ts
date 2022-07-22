@@ -49,7 +49,7 @@ function findPages(result: ItemData[], root: BaseNodeMixin & ChildrenMixin, quer
 
 const max_result = 50;
 const max_depth = 1;
-let node_stat = 0;
+const stat = { nodes: 0, time: 0};
 
 function findFrames(result: ItemData[],
                     page: PageNode,
@@ -57,13 +57,9 @@ function findFrames(result: ItemData[],
                     query: string,
                     depth = 0)
 {
-	if (depth === 0) {
-		node_stat = 0;
-	}
-
 	for (let node of root.children) {
 
-		node_stat++;
+		stat.nodes++;
 
 		if (result.length > max_result) {
 			return;
@@ -88,10 +84,6 @@ function findFrames(result: ItemData[],
 			}
 		}
 	}
-
-	if (depth === 0) {
-		console.log(`stat: ${node_stat} nodes`);
-	}
 }
 
 function onInput(text: unknown)
@@ -107,18 +99,22 @@ function onInput(text: unknown)
 		return;
 	}
 
-	const result = [];
+	const pages = [];
 
-	findPages(result, figma.root as any, query);
+	findPages(pages, figma.root as any, query);
 
+	stat.time = Date.now();
+	stat.nodes = 0;
 
-	const time = Date.now();
+	const layers = [];
+
 	for (let page of figma.root.children) {
-		findFrames(result, page, page, query);
+		findFrames(layers, page, page, query);
 	}
-	console.log(`time: ${Date.now() - time}ms`);
 
-	figma.ui.postMessage({type: "search_result", nodes: result});
+	console.log(`time: ${Date.now() - stat.time}ms, nodes: ${stat.nodes}`);
+
+	figma.ui.postMessage({type: "search_result", data: {pages, layers}});
 }
 
 const documentKey = figma.root.name;
@@ -149,8 +145,6 @@ figma.clientStorage.getAsync(documentKey).then(result => {
 	}
 	figma.ui.postMessage({type: "search_result", data});
 });
-
-console.log("run");
 
 interface ISearchData
 {

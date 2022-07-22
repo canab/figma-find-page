@@ -41,6 +41,13 @@
 		color: var(--figma-color-text);
 	}
 
+	.list-header {
+		padding: 4px 2px;
+		cursor: pointer;
+		color: var(--figma-color-text-tertiary);
+		font-weight: bold;
+	}
+
 	.list-item:hover {
 		border: 1px solid var(--figma-color-border);
 		background-color: var(--figma-color-bg-hover);
@@ -81,6 +88,7 @@
 		<div id="find_result" class="list">
 			<div id="default_template" class="list-item">List Item</div>
 			<div id="selected_template" class="list-item list-item-sel">Selected Item</div>
+			<div id="header_template" class="list-header">Header</div>
 		</div>
 	</div>
 
@@ -92,6 +100,20 @@
 
 	const defaultTemplate = document.getElementById("default_template");
 	const selectedTemplate = document.getElementById("selected_template");
+	const headerTemplate = document.getElementById("header_template");
+
+	let selectedIndex = 0;
+	let listItems = [];
+
+	function clearResult()
+	{
+		listItems = [];
+		selectedIndex = -1;
+		while (pagesElement.hasChildNodes()) {
+			pagesElement.removeChild(pagesElement.lastChild);
+		}
+	}
+
 	clearResult();
 
 	inputElement.oninput = () => {
@@ -129,19 +151,18 @@
 		}
 	}
 
-	let selectedIndex = 0;
-	let pageList = [];
-
 	function setSelection(newIndex, scroll)
 	{
-		if (newIndex < 0 || newIndex >= pagesElement.childNodes.length)
+		console.log(newIndex, listItems.length)
+
+		if (newIndex < 0 || newIndex >= listItems.length)
 			return;
 
-		let currentNode = pagesElement.childNodes[selectedIndex];
+		let currentNode = listItems[selectedIndex];
 		if (currentNode)
 			currentNode.classList = defaultTemplate.classList;
 
-		currentNode = pagesElement.childNodes[newIndex];
+		currentNode = listItems[newIndex];
 		if (currentNode) {
 			selectedIndex = newIndex;
 			currentNode.classList = selectedTemplate.classList;
@@ -153,48 +174,49 @@
 
 	function openPage()
 	{
-		const node = pagesElement.childNodes[selectedIndex];
+		const node = listItems[selectedIndex];
 		const data = node["_data_"];
 		parent.postMessage({pluginMessage: {type: "on_open", data}}, "*");
 	}
 
 	function updateResult(data)
 	{
-		pageList = data.recent;
+		clearResult();
 
-		while (pagesElement.hasChildNodes()) {
-			pagesElement.removeChild(pagesElement.lastChild);
-		}
+		addItems(data.recent, "recent");
+		addItems(data.pages, "pages");
+		addItems(data.layers, "layers");
 
-		selectedIndex = 0;
+		setSelection(0, false);
+	}
 
-		for (let i = 0; i < nodes.length; i++) {
-			const node = nodes[i];
-			const item = defaultTemplate.cloneNode();
-			item.innerText = node.name;
-			item.addEventListener("click", () => onItemClick(item));
-			item._data_ = node;
-			if (i === selectedIndex)
-				item.classList = selectedTemplate.classList;
+	function addItems(data, title)
+	{
+		if (!data?.length)
+			return;
 
-			pagesElement.appendChild(item);
+		const header = headerTemplate.cloneNode(true);
+		header.innerText = `${title.toUpperCase()}:`;
+		pagesElement.appendChild(header);
+
+		for (let i = 0; i < data.length; i++) {
+			const nodeData = data[i];
+			const node = defaultTemplate.cloneNode(true);
+			node.innerText = nodeData.name;
+			node["_data_"] = nodeData;
+			node.addEventListener("click", () => onItemClick(node));
+			pagesElement.appendChild(node);
+			listItems.push(node);
 		}
 	}
 
 	function onItemClick(item)
 	{
-		const index = pageList.indexOf(item._data_);
+		const index = listItems.indexOf(item._data_);
 		if (index < 0)
 			return;
 		setSelection(index);
 		openPage();
-	}
-
-	function clearResult()
-	{
-		while (pagesElement.hasChildNodes()) {
-			pagesElement.removeChild(pagesElement.lastChild);
-		}
 	}
 
 	inputElement.focus();

@@ -32,13 +32,10 @@ function findPages(result, root, query) {
 }
 const max_result = 50;
 const max_depth = 1;
-let node_stat = 0;
+const stat = { nodes: 0, time: 0 };
 function findFrames(result, page, root, query, depth = 0) {
-    if (depth === 0) {
-        node_stat = 0;
-    }
     for (let node of root.children) {
-        node_stat++;
+        stat.nodes++;
         if (result.length > max_result) {
             return;
         }
@@ -59,9 +56,6 @@ function findFrames(result, page, root, query, depth = 0) {
             }
         }
     }
-    if (depth === 0) {
-        console.log(`stat: ${node_stat} nodes`);
-    }
 }
 function onInput(text) {
     if (typeof (text) !== "string") {
@@ -73,14 +67,16 @@ function onInput(text) {
         figma.ui.postMessage({ type: "search_result", nodes: recentList });
         return;
     }
-    const result = [];
-    findPages(result, figma.root, query);
-    const time = Date.now();
+    const pages = [];
+    findPages(pages, figma.root, query);
+    stat.time = Date.now();
+    stat.nodes = 0;
+    const layers = [];
     for (let page of figma.root.children) {
-        findFrames(result, page, page, query);
+        findFrames(layers, page, page, query);
     }
-    console.log(`time: ${Date.now() - time}ms`);
-    figma.ui.postMessage({ type: "search_result", nodes: result });
+    console.log(`time: ${Date.now() - stat.time}ms, nodes: ${stat.nodes}`);
+    figma.ui.postMessage({ type: "search_result", data: { pages, layers } });
 }
 const documentKey = figma.root.name;
 let recentList = [];
@@ -105,4 +101,3 @@ figma.clientStorage.getAsync(documentKey).then(result => {
     };
     figma.ui.postMessage({ type: "search_result", data });
 });
-console.log("run");
