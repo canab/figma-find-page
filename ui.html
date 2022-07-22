@@ -1,19 +1,4 @@
 <style>
-	input {
-		background-color: var(--figma-color-bg-secondary);
-		color: var(--figma-color-text);
-		border: 1px solid var(--figma-color-border);
-		min-height: 24px;
-	}
-
-	.figma-dark input {
-		color: var(--figma-color-text-secondary);
-	}
-
-	input:focus {
-		outline: none;
-	}
-
 	::-webkit-scrollbar {
 		width: 4px;
 	}
@@ -26,7 +11,19 @@
 		background: var(--figma-color-bg-secondary);
 	}
 
-	body {
+	input {
+		background-color: var(--figma-color-bg-secondary);
+		color: var(--figma-color-text);
+		border: 1px solid var(--figma-color-border);
+		min-height: 24px;
+	}
+
+	input:focus {
+		outline: none;
+	}
+
+	.figma-dark input {
+		color: var(--figma-color-text-secondary);
 	}
 
 	.root {
@@ -35,10 +32,19 @@
 	}
 
 	.list-item {
+		display: flex;
+		flex-flow: row nowrap;
 		padding: 2px;
 		cursor: pointer;
 		border: 1px solid transparent;
 		color: var(--figma-color-text);
+	}
+
+	.list-header {
+		padding: 4px 2px;
+		cursor: pointer;
+		color: var(--figma-color-text-tertiary);
+		font-weight: bold;
 	}
 
 	.list-item:hover {
@@ -47,16 +53,13 @@
 	}
 
 	.list-item-sel {
-		background-color: var(--figma-color-bg-brand);
-		color: var(--figma-color-text-onbrand);
+		color: var(--figma-color-text-onbrand) !important;
+		border: 1px solid transparent !important;
+		background-color: var(--figma-color-bg-brand) !important;
 	}
 
 	.figma-dark .list-item {
 		color: var(--figma-color-text-secondary);
-	}
-
-	.figma-dark .list-item-sel {
-		color: var(--figma-color-text-onbrand);
 	}
 
 	.list {
@@ -72,6 +75,37 @@
 		height: 100%;
 	}
 
+	.col1 {
+		min-width: 16px;
+		max-width: 16px;
+		opacity: 0.5;
+	}
+
+	.col2 {
+		flex-grow: 1;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.col3 {
+		color: var(--figma-color-text-secondary);
+		font-weight: normal;
+		font-size: 11px;
+		align-self: center;
+		margin-left: 4px;
+		/*overflow: hidden;*/
+		white-space: nowrap;
+	}
+
+	.figma-dark .col3 {
+		color: var(--figma-color-text-tertiary);
+	}
+
+	.list-item-sel .col3 {
+		color: var(--figma-color-text-onbrand-secondary);
+	}
+
 </style>
 
 <div class="root">
@@ -79,8 +113,17 @@
 	<div class="content">
 		<input id="find_input" value="">
 		<div id="find_result" class="list">
-			<div id="default_template" class="list-item">List Item</div>
+
+			<div id="header_template" class="list-header">Header</div>
+
+			<div id="default_template" class="list-item">
+				<div class="col1">*</div>
+				<div class="col2">Page template</div>
+				<div class="col3">(secondary)</div>
+			</div>
+
 			<div id="selected_template" class="list-item list-item-sel">Selected Item</div>
+
 		</div>
 	</div>
 
@@ -90,8 +133,21 @@
 	const inputElement = document.getElementById('find_input');
 	const pagesElement = document.getElementById('find_result');
 
-	const defaultTemplate = document.getElementById("default_template");
-	const selectedTemplate = document.getElementById("selected_template");
+	const default_template = document.getElementById("default_template");
+	const header_template = document.getElementById("header_template");
+
+	let selectedIndex = 0;
+	let listItems = [];
+
+	function clearResult()
+	{
+		listItems = [];
+		selectedIndex = -1;
+		while (pagesElement.hasChildNodes()) {
+			pagesElement.removeChild(pagesElement.lastChild);
+		}
+	}
+
 	clearResult();
 
 	inputElement.oninput = () => {
@@ -104,12 +160,14 @@
 		switch (event.key) {
 			case "ArrowUp":
 				setSelection(selectedIndex - 1, true);
+				event.preventDefault();
 				break;
 			case "ArrowDown":
 				setSelection(selectedIndex + 1, true);
+				event.preventDefault();
 				break;
 			case "Enter":
-				openPage();
+				openPage({close: true});
 				break;
 			case "Escape":
 				parent.postMessage({pluginMessage: {type: "on_close"}}, "*");
@@ -122,77 +180,90 @@
 		switch (msg.type)
 		{
 			case "search_result":
-				updateResult(msg.nodes);
+				updateResult(msg.data);
 				break;
 		}
 	}
 
-	let selectedIndex = 0;
-	let pageList = [];
-
 	function setSelection(newIndex, scroll)
 	{
-		if (newIndex < 0 || newIndex >= pagesElement.childNodes.length)
+		if (newIndex < 0 || newIndex >= listItems.length)
 			return;
 
-		let currentNode = pagesElement.childNodes[selectedIndex];
+		let currentNode = listItems[selectedIndex];
 		if (currentNode)
-			currentNode.classList = defaultTemplate.classList;
+			currentNode.classList.remove("list-item-sel");
 
-		currentNode = pagesElement.childNodes[newIndex];
+		currentNode = listItems[newIndex];
 		if (currentNode) {
 			selectedIndex = newIndex;
-			currentNode.classList = selectedTemplate.classList;
+			currentNode.classList.add("list-item-sel");
 		}
 
 		if (scroll && currentNode)
 			currentNode.scrollIntoView({block: "nearest"});
 	}
 
-	function openPage()
+	function openPage({close = false} = {})
 	{
-		const node = pagesElement.childNodes[selectedIndex];
+		const node = listItems[selectedIndex];
 		const data = node["_data_"];
-		parent.postMessage({pluginMessage: {type: "on_open", data}}, "*");
+		parent.postMessage({pluginMessage: {type: "on_open", data, close}}, "*");
 	}
 
-	function updateResult(nodes)
+	function updateResult(data)
 	{
-		pageList = nodes;
+		clearResult();
 
-		while (pagesElement.hasChildNodes()) {
-			pagesElement.removeChild(pagesElement.lastChild);
-		}
+		addItems(data.recent, "recent");
+		addItems(data.pages, "pages");
+		addItems(data.layers, "layers");
 
-		selectedIndex = 0;
+		setSelection(0, false);
+	}
 
-		for (let i = 0; i < nodes.length; i++) {
-			const node = nodes[i];
-			const item = defaultTemplate.cloneNode();
-			item.innerText = node.name;
-			item.addEventListener("click", () => onItemClick(item));
-			item._data_ = node;
-			if (i === selectedIndex)
-				item.classList = selectedTemplate.classList;
+	function getIcon(node)
+	{
+		if (node.type === "PAGE")
+			return "▣";
 
-			pagesElement.appendChild(item);
+		if (node.type === "FRAME")
+			return "☰";
+
+		return "❖";
+	}
+
+	function addItems(data, title)
+	{
+		if (!data?.length)
+			return;
+
+		// console.log(data)
+
+		const header = header_template.cloneNode(true);
+		header.innerText = `${title.toUpperCase()}:`;
+		pagesElement.appendChild(header);
+
+		for (let i = 0; i < data.length; i++) {
+			const nodeData = data[i];
+			const node = default_template.cloneNode(true);
+			node.children[0].textContent = getIcon(nodeData);
+			node.children[1].textContent = nodeData.name;
+			node.children[2].textContent = nodeData.pg_name ?? "";
+			node["_data_"] = nodeData;
+			node.addEventListener("click", () => onItemClick(node));
+			pagesElement.appendChild(node);
+			listItems.push(node);
 		}
 	}
 
-	function onItemClick(item)
+	function onItemClick(node)
 	{
-		const index = pageList.indexOf(item._data_);
+		const index = listItems.indexOf(node);
 		if (index < 0)
 			return;
 		setSelection(index);
 		openPage();
-	}
-
-	function clearResult()
-	{
-		while (pagesElement.hasChildNodes()) {
-			pagesElement.removeChild(pagesElement.lastChild);
-		}
 	}
 
 	inputElement.focus();
