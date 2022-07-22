@@ -10,7 +10,7 @@ figma.ui.onmessage = msg => {
             onInput(msg.text);
             break;
         case "on_open":
-            onOpen(msg.data);
+            onOpen(msg.data, msg.close);
             break;
         case "on_close":
             figma.closePlugin();
@@ -24,7 +24,7 @@ function findPages(result, root, query) {
                 result.push({
                     id: node.id,
                     name: node.name,
-                    type: "PAGE",
+                    type: "PAGE"
                 });
             }
         }
@@ -48,7 +48,7 @@ function findFrames(result, page, root, query, depth = 0) {
                     pg_name: page.name,
                     id: node.id,
                     name: node.name,
-                    type: node.type,
+                    type: node.type
                 });
             }
             if (depth + 1 < max_depth) {
@@ -81,28 +81,30 @@ function onInput(text) {
 const documentKey = figma.root.name;
 const storageVersion = 1;
 let recentList = [];
-function onOpen(data) {
+function onOpen(data, close) {
     if (data.type === "PAGE") {
         const page = figma.root.findChild(it => it.id === data.id);
-        if (!page)
+        if (!page) {
             return;
+        }
         figma.currentPage = page;
-        addToRecent(data);
+        addToRecent(data, close);
     }
     else {
         const page = figma.root.findChild(it => it.id === data.pg_id);
-        if (!page)
+        if (!page) {
             return;
+        }
         figma.currentPage = page;
         const node = page.findChild(it => it.id === data.id);
         if (node) {
             figma.currentPage.selection = [node];
             figma.viewport.scrollAndZoomIntoView([node]);
-            addToRecent(data);
+            addToRecent(data, close);
         }
     }
 }
-function addToRecent(data) {
+function addToRecent(data, closePlugin = false) {
     const recentIndex = recentList.findIndex(it => it.id === data.id);
     if (recentIndex >= 0) {
         recentList.splice(recentIndex, 1);
@@ -110,18 +112,24 @@ function addToRecent(data) {
     recentList.unshift(data);
     const storageData = {
         version: storageVersion,
-        recent: recentList,
+        recent: recentList
     };
-    figma.clientStorage.setAsync(documentKey, storageData)
-        .then(() => figma.closePlugin());
+    figma.clientStorage
+        .setAsync(documentKey, storageData)
+        .then(() => {
+        if (closePlugin) {
+            figma.closePlugin();
+        }
+    });
 }
 figma.clientStorage.getAsync(documentKey).then((result) => {
     var _a;
-    if ((result === null || result === void 0 ? void 0 : result.version) !== storageVersion)
+    if ((result === null || result === void 0 ? void 0 : result.version) !== storageVersion) {
         return;
+    }
     recentList = (_a = result.recent) !== null && _a !== void 0 ? _a : [];
     const data = {
-        recent: recentList,
+        recent: recentList
     };
     figma.ui.postMessage({ type: "search_result", data });
 });

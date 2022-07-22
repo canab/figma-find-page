@@ -14,7 +14,7 @@ figma.ui.onmessage = msg =>
 			break;
 
 		case "on_open":
-			onOpen(msg.data);
+			onOpen(msg.data, msg.close);
 			break;
 
 		case "on_close":
@@ -46,7 +46,7 @@ function findPages(result: ItemData[], root: BaseNodeMixin & ChildrenMixin, quer
 				result.push({
 					id: node.id,
 					name: node.name,
-					type: "PAGE",
+					type: "PAGE"
 				});
 			}
 		}
@@ -55,7 +55,7 @@ function findPages(result: ItemData[], root: BaseNodeMixin & ChildrenMixin, quer
 
 const max_result = 50;
 const max_depth = 1;
-const stat = { nodes: 0, time: 0};
+const stat = {nodes: 0, time: 0};
 
 function findFrames(result: ItemData[],
                     page: PageNode,
@@ -81,7 +81,7 @@ function findFrames(result: ItemData[],
 					pg_name: page.name,
 					id: node.id,
 					name: node.name,
-					type: node.type,
+					type: node.type
 				});
 			}
 
@@ -127,29 +127,31 @@ const documentKey = figma.root.name;
 const storageVersion = 1;
 let recentList: ItemData[] = [];
 
-function onOpen(data: ItemData)
+function onOpen(data: ItemData, close: boolean)
 {
 	if (data.type === "PAGE") {
 		const page = figma.root.findChild(it => it.id === data.id);
-		if (!page)
+		if (!page) {
 			return;
+		}
 		figma.currentPage = page;
-		addToRecent(data)
+		addToRecent(data, close);
 	} else {
 		const page = figma.root.findChild(it => it.id === data.pg_id);
-		if (!page)
+		if (!page) {
 			return;
+		}
 		figma.currentPage = page;
 		const node = page.findChild(it => it.id === data.id);
 		if (node) {
 			figma.currentPage.selection = [node];
 			figma.viewport.scrollAndZoomIntoView([node]);
-			addToRecent(data);
+			addToRecent(data, close);
 		}
 	}
 }
 
-function addToRecent(data: ItemData)
+function addToRecent(data: ItemData, closePlugin = false)
 {
 	const recentIndex = recentList.findIndex(it => it.id === data.id);
 	if (recentIndex >= 0) {
@@ -158,19 +160,25 @@ function addToRecent(data: ItemData)
 	recentList.unshift(data);
 	const storageData: StorageData = {
 		version: storageVersion,
-		recent: recentList,
-	}
-	figma.clientStorage.setAsync(documentKey, storageData)
-		.then(() => figma.closePlugin());
+		recent: recentList
+	};
+	figma.clientStorage
+		.setAsync(documentKey, storageData)
+		.then(() => {
+			if (closePlugin) {
+				figma.closePlugin();
+			}
+		});
 }
 
 figma.clientStorage.getAsync(documentKey).then((result: StorageData) => {
-	if (result?.version !== storageVersion)
+	if (result?.version !== storageVersion) {
 		return;
+	}
 	recentList = result.recent ?? [];
 	const data: ISearchData = {
-		recent: recentList,
-	}
+		recent: recentList
+	};
 	figma.ui.postMessage({type: "search_result", data});
 });
 
