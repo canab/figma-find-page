@@ -1,8 +1,8 @@
 // This shows the HTML page in "ui.html".
 figma.showUI(__html__, {
     themeColors: true,
-    width: 250,
-    height: 250
+    width: 300,
+    height: 300
 });
 figma.ui.onmessage = msg => {
     switch (msg.type) {

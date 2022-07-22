@@ -62,10 +62,6 @@
 		color: var(--figma-color-text-secondary);
 	}
 
-	.figma-dark .list-item-sel {
-		color: var(--figma-color-text-onbrand);
-	}
-
 	.list {
 		margin-top: 8px;
 		overflow-y: auto;
@@ -80,16 +76,34 @@
 	}
 
 	.col1 {
-		width: 16px;
+		min-width: 16px;
+		max-width: 16px;
 		opacity: 0.5;
 	}
 
 	.col2 {
 		flex-grow: 1;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 	}
 
 	.col3 {
+		color: var(--figma-color-text-secondary);
+		font-weight: normal;
+		font-size: 11px;
+		align-self: center;
+		margin-left: 4px;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+
+	.figma-dark .col3 {
 		color: var(--figma-color-text-tertiary);
+	}
+
+	.list-item-sel .col3 {
+		color: var(--figma-color-text-onbrand-secondary);
 	}
 
 </style>
