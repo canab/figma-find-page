@@ -27,7 +27,7 @@ interface ItemData
 {
 	id: string;
 	name: string;
-	type: string;
+	type: "PAGE" | "FRAME" | "COMPONENT" | "COMPONENT_SET";
 	pg_id?: string;
 	pg_name?: string;
 }
@@ -129,13 +129,24 @@ let recentList: ItemData[] = [];
 
 function onOpen(data: ItemData)
 {
-	const page = figma.root.findChild(it => it.id === data.id);
-	if (!page) {
-		return;
+	if (data.type === "PAGE") {
+		const page = figma.root.findChild(it => it.id === data.id);
+		if (!page)
+			return;
+		figma.currentPage = page;
+		addToRecent(data)
+	} else {
+		const page = figma.root.findChild(it => it.id === data.pg_id);
+		if (!page)
+			return;
+		figma.currentPage = page;
+		const node = page.findChild(it => it.id === data.id);
+		if (node) {
+			figma.currentPage.selection = [node];
+			figma.viewport.scrollAndZoomIntoView([node]);
+			addToRecent(data);
+		}
 	}
-
-	figma.currentPage = page;
-	addToRecent(data)
 }
 
 function addToRecent(data: ItemData)

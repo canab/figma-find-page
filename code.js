@@ -82,12 +82,25 @@ const documentKey = figma.root.name;
 const storageVersion = 1;
 let recentList = [];
 function onOpen(data) {
-    const page = figma.root.findChild(it => it.id === data.id);
-    if (!page) {
-        return;
+    if (data.type === "PAGE") {
+        const page = figma.root.findChild(it => it.id === data.id);
+        if (!page)
+            return;
+        figma.currentPage = page;
+        addToRecent(data);
     }
-    figma.currentPage = page;
-    addToRecent(data);
+    else {
+        const page = figma.root.findChild(it => it.id === data.pg_id);
+        if (!page)
+            return;
+        figma.currentPage = page;
+        const node = page.findChild(it => it.id === data.id);
+        if (node) {
+            figma.currentPage.selection = [node];
+            figma.viewport.scrollAndZoomIntoView([node]);
+            addToRecent(data);
+        }
+    }
 }
 function addToRecent(data) {
     const recentIndex = recentList.findIndex(it => it.id === data.id);
