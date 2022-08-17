@@ -1,3 +1,4 @@
+<!--suppress CssUnresolvedCustomProperty, HtmlFormInputWithoutLabel -->
 <style>
 	::-webkit-scrollbar {
 		width: 4px;
@@ -11,18 +12,25 @@
 		background: var(--figma-color-bg-secondary);
 	}
 
+	body {
+		margin-right: 4px;
+		color: var(--figma-color-text);
+	}
+
 	input {
 		background-color: var(--figma-color-bg-secondary);
 		color: var(--figma-color-text);
 		border: 1px solid var(--figma-color-border);
 		min-height: 24px;
+		font-weight: bold;
+		padding-left: 4px;
 	}
 
 	input:focus {
 		outline: none;
 	}
 
-	.figma-dark input {
+	.figma-dark input, body {
 		color: var(--figma-color-text-secondary);
 	}
 
@@ -38,13 +46,18 @@
 		cursor: pointer;
 		border: 1px solid transparent;
 		color: var(--figma-color-text);
+		margin-right: 4px;
 	}
 
 	.list-header {
 		padding: 4px 2px;
 		cursor: pointer;
-		color: var(--figma-color-text-tertiary);
 		font-weight: bold;
+		color: var(--figma-color-text-secondary);
+	}
+
+	.figma-dark .list-header {
+		color: var(--figma-color-text-tertiary);
 	}
 
 	.list-item:hover {
@@ -73,6 +86,32 @@
 		align-items: stretch;
 		width: 100%;
 		height: 100%;
+	}
+
+	.settings {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+		height: 100%;
+		padding: 10px;
+		box-sizing: border-box;
+	}
+
+	.settings * {
+		margin-bottom: 10px;
+	}
+
+	.settings label {
+		margin-bottom: 2px;
+		margin-left: 2px;
+		color: var(--figma-color-text);
+	}
+
+	.line {
+		width: 100%;
+		height: 1px;
+		background-color: var(--figma-color-border);
+		margin-top: 12px
 	}
 
 	.col1 {
@@ -106,12 +145,71 @@
 		color: var(--figma-color-text-onbrand-secondary);
 	}
 
+	.icon-button {
+		background-color: var(--figma-color-bg);
+		border: 1px solid transparent;
+		border-radius: 4px;
+		width: 24px;
+		height: 24px;
+		color: var(--figma-color-text-tertiary);
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.icon-img {
+		width: 24px;
+		height: 24px;
+		filter: invert(50%);
+		margin-left: -1px;
+		margin-top: -1px;
+	}
+
+	.icon-button:hover {
+		border: 1px solid var(--figma-color-border);
+		background: var(--figma-color-bg-secondary);
+	}
+
+	.icon-gear {
+		background: url(data:image/png;base64,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) no-repeat center;
+		background-size: 16px;
+	}
+
+	.text-btn {
+		background-color: var(--figma-color-bg-secondary);
+		border: 1px solid var(--figma-color-border);
+		border-radius: 4px;
+		width: 80px;
+		height: 24px;
+		color: var(--figma-color-text-secondary);
+		padding: 0;
+		cursor: pointer;
+	}
+
+	.hbox {
+		display: flex;
+		flex-flow: row nowrap;
+	}
+
+	.hbox .icon-button {
+		margin-left: 4px;
+		text-align: center
+	}
+
+	.hbox input {
+		flex-grow: 1;
+	}
+
 </style>
 
 <div class="root">
 
-	<div class="content">
-		<input id="find_input" value="">
+	<div id="content" class="content">
+		<div class="hbox">
+			<input id="find_input" value="">
+			<button class="icon-button" id="settings_btn" value="">
+				<div class="icon-img icon-gear"></div>
+			</button>
+		</div>
 		<div id="find_result" class="list">
 
 			<div id="header_template" class="list-header">Header</div>
@@ -127,15 +225,74 @@
 		</div>
 	</div>
 
+	<div id="settings" class="settings">
+		<label>Width:</label>
+		<input id="settings_width_input" style="width:80px"/>
+		<label>Height:</label>
+		<input id="settings_height_input" style="width:80px"/>
+		<div class="line"></div>
+		<button id="settings_submit_btn" class="text-btn">
+			Close
+		</button>
+	</div>
 </div>
 
 <script>
+	const content = document.getElementById('content');
+
 	const inputElement = document.getElementById('find_input');
 	const pagesElement = document.getElementById('find_result');
 
 	const default_template = document.getElementById("default_template");
 	const header_template = document.getElementById("header_template");
 
+	const settings = document.getElementById('settings');
+	const settings_submit_btn = document.getElementById('settings_submit_btn');
+	const settings_width_input = document.getElementById('settings_width_input');
+	const settings_height_input = document.getElementById('settings_height_input');
+	const settings_btn = document.getElementById("settings_btn");
+
+	settings_btn.addEventListener("click", () => {
+		showSettings();
+	});
+
+	settings_submit_btn.addEventListener("click", () => {
+
+		function adjustSize(input, defaultValue)
+		{
+			const value = Number(input);
+			return value >= 200 && value <= 2000
+				? Math.floor(value)
+				: defaultValue;
+		}
+
+		settingsData.width = adjustSize(settings_width_input.value, settingsData.width);
+		settingsData.height = adjustSize(settings_height_input.value, settingsData.height);
+		showContent();
+
+		parent.postMessage({pluginMessage: {
+			type: "on_settings",
+			settings: settingsData,
+		}}, "*");
+	});
+
+	function showContent()
+	{
+		settings.style.display = "none";
+		content.style.display = "flex";
+	}
+
+	function showSettings()
+	{
+		settings.style.display = "flex";
+		content.style.display = "none";
+		settings_width_input.value = settingsData.width;
+		settings_height_input.value = settingsData.height;
+	}
+
+	showContent();
+
+	let settingsData = {};
 	let selectedIndex = 0;
 	let listItems = [];
 
@@ -181,6 +338,10 @@
 		{
 			case "search_result":
 				updateResult(msg.data);
+				break;
+
+			case "settings":
+				settingsData = msg.settings;
 				break;
 		}
 	}
@@ -237,8 +398,6 @@
 	{
 		if (!data?.length)
 			return;
-
-		// console.log(data)
 
 		const header = header_template.cloneNode(true);
 		header.innerText = `${title.toUpperCase()}:`;

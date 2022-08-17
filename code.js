@@ -1,9 +1,4 @@
 // This shows the HTML page in "ui.html".
-figma.showUI(__html__, {
-    themeColors: true,
-    width: 300,
-    height: 300
-});
 figma.ui.onmessage = msg => {
     switch (msg.type) {
         case "on_input":
@@ -12,10 +7,20 @@ figma.ui.onmessage = msg => {
         case "on_open":
             onOpen(msg.data, msg.close);
             break;
+        case "on_settings":
+            settings = msg.settings;
+            saveData(() => {
+                figma.ui.resize(settings.width, settings.height);
+            });
+            break;
         case "on_close":
             figma.closePlugin();
             break;
     }
+};
+let settings = {
+    width: 300,
+    height: 300,
 };
 function findPages(result, root, query) {
     for (let node of root.children) {
@@ -110,26 +115,42 @@ function addToRecent(data, closePlugin = false) {
         recentList.splice(recentIndex, 1);
     }
     recentList.unshift(data);
-    const storageData = {
-        version: storageVersion,
-        recent: recentList
-    };
-    figma.clientStorage
-        .setAsync(documentKey, storageData)
-        .then(() => {
+    this.saveData(() => {
         if (closePlugin) {
             figma.closePlugin();
         }
     });
 }
+function saveData(callback) {
+    const storageData = {
+        version: storageVersion,
+        recent: recentList,
+        settings,
+    };
+    figma.clientStorage
+        .setAsync(documentKey, storageData)
+        .then(callback);
+}
 figma.clientStorage.getAsync(documentKey).then((result) => {
-    var _a;
+    var _a, _b, _c, _d, _e;
     if ((result === null || result === void 0 ? void 0 : result.version) !== storageVersion) {
         return;
     }
     recentList = (_a = result.recent) !== null && _a !== void 0 ? _a : [];
+    settings.width = (_c = (_b = result.settings) === null || _b === void 0 ? void 0 : _b.width) !== null && _c !== void 0 ? _c : settings.width;
+    settings.height = (_e = (_d = result.settings) === null || _d === void 0 ? void 0 : _d.height) !== null && _e !== void 0 ? _e : settings.height;
     const data = {
-        recent: recentList
+        recent: recentList,
     };
+    showUI();
     figma.ui.postMessage({ type: "search_result", data });
+    figma.ui.postMessage({ type: "settings", settings });
 });
+function showUI() {
+    figma.showUI(__html__, {
+        themeColors: true,
+        width: settings.width,
+        height: settings.height,
+        visible: true,
+    });
+}

@@ -1,11 +1,5 @@
 // This shows the HTML page in "ui.html".
 
-figma.showUI(__html__, {
-	themeColors: true,
-	width: 300,
-	height: 300
-});
-
 figma.ui.onmessage = msg =>
 {
 	switch (msg.type) {
@@ -17,11 +11,23 @@ figma.ui.onmessage = msg =>
 			onOpen(msg.data, msg.close);
 			break;
 
+		case "on_settings":
+			settings = msg.settings;
+			saveData(() => {
+				figma.ui.resize(settings.width, settings.height);
+			})
+			break;
+
 		case "on_close":
 			figma.closePlugin();
 			break;
 	}
 };
+
+let settings = {
+	width: 300,
+	height: 300,
+}
 
 interface ItemData
 {
@@ -36,6 +42,7 @@ interface StorageData
 {
 	version?: number;
 	recent?: ItemData[];
+	settings?: typeof settings;
 }
 
 function findPages(result: ItemData[], root: BaseNodeMixin & ChildrenMixin, query: string)
@@ -158,17 +165,23 @@ function addToRecent(data: ItemData, closePlugin = false)
 		recentList.splice(recentIndex, 1);
 	}
 	recentList.unshift(data);
+	this.saveData(() => {
+		if (closePlugin) {
+			figma.closePlugin();
+		}
+	});
+}
+
+function saveData(callback: () => void)
+{
 	const storageData: StorageData = {
 		version: storageVersion,
-		recent: recentList
+		recent: recentList,
+		settings,
 	};
 	figma.clientStorage
 		.setAsync(documentKey, storageData)
-		.then(() => {
-			if (closePlugin) {
-				figma.closePlugin();
-			}
-		});
+		.then(callback);
 }
 
 figma.clientStorage.getAsync(documentKey).then((result: StorageData) => {
@@ -176,13 +189,29 @@ figma.clientStorage.getAsync(documentKey).then((result: StorageData) => {
 		return;
 	}
 	recentList = result.recent ?? [];
-	const data: ISearchData = {
-		recent: recentList
+	settings.width = result.settings?.width ?? settings.width;
+	settings.height = result.settings?.height ?? settings.height;
+
+	const data: IData = {
+		recent: recentList,
 	};
+
+	showUI();
 	figma.ui.postMessage({type: "search_result", data});
+	figma.ui.postMessage({type: "settings", settings});
 });
 
-interface ISearchData
+function showUI()
+{
+	figma.showUI(__html__, {
+		themeColors: true,
+		width: settings.width,
+		height: settings.height,
+		visible: true,
+	});
+}
+
+interface IData
 {
 	pages?: ItemData[];
 	layers?: ItemData[];
