@@ -258,6 +258,11 @@
 
 	settings_submit_btn.addEventListener("click", () => {
 
+		submitSettings();
+	});
+
+	function submitSettings()
+	{
 		function adjustSize(input, defaultValue)
 		{
 			const value = Number(input);
@@ -274,7 +279,7 @@
 			type: "on_settings",
 			settings: settingsData,
 		}}, "*");
-	});
+	}
 
 	function showContent()
 	{
@@ -323,7 +328,10 @@
 				event.preventDefault();
 				break;
 			case "Enter":
-				openPage({close: true});
+				if (settings.style.display === "none")
+					openPage({close: true});
+				else
+					submitSettings();
 				break;
 			case "Escape":
 				parent.postMessage({pluginMessage: {type: "on_close"}}, "*");
