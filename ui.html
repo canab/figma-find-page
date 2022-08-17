@@ -290,8 +290,6 @@
 		settings_height_input.value = settingsData.height;
 	}
 
-	showContent();
-
 	let settingsData = {};
 	let selectedIndex = 0;
 	let listItems = [];
@@ -306,13 +304,14 @@
 	}
 
 	clearResult();
+	showContent();
 
 	inputElement.oninput = () => {
 		const text = String(inputElement.value).trim();
 		parent.postMessage({pluginMessage: {type: 'on_input', text}}, '*')
 	}
 
-	inputElement.onkeydown = (event) => {
+	window.onkeydown = (event) => {
 		// console.log(event.key);
 		switch (event.key) {
 			case "ArrowUp":

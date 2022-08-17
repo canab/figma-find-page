@@ -115,7 +115,7 @@ function addToRecent(data, closePlugin = false) {
         recentList.splice(recentIndex, 1);
     }
     recentList.unshift(data);
-    this.saveData(() => {
+    saveData(() => {
         if (closePlugin) {
             figma.closePlugin();
         }
