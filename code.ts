@@ -15,7 +15,7 @@ figma.ui.onmessage = msg =>
 			settings = msg.settings;
 			saveData(() => {
 				figma.ui.resize(settings.width, settings.height);
-			})
+			});
 			break;
 
 		case "on_close":
@@ -26,8 +26,8 @@ figma.ui.onmessage = msg =>
 
 let settings = {
 	width: 300,
-	height: 300,
-}
+	height: 300
+};
 
 interface ItemData
 {
@@ -177,20 +177,20 @@ function saveData(callback: () => void)
 	const storageData: StorageData = {
 		version: storageVersion,
 		recent: recentList,
-		settings,
+		settings
 	};
 	figma.clientStorage
 		.setAsync(documentKey, storageData)
 		.then(callback);
 }
 
-figma.clientStorage.getAsync(documentKey).then((result: StorageData) => {
-	if (result?.version !== storageVersion) {
-		return;
-	}
-	recentList = result.recent ?? [];
-	settings.width = result.settings?.width ?? settings.width;
-	settings.height = result.settings?.height ?? settings.height;
+figma.clientStorage.getAsync(documentKey).then((result?: StorageData) => {
+	if (result?.version !== storageVersion)
+		result = undefined;
+
+	recentList = result?.recent ?? [];
+	settings.width = result?.settings?.width ?? settings.width;
+	settings.height = result?.settings?.height ?? settings.height;
 
 	const data: IData = {
 		recent: recentList,
@@ -207,7 +207,7 @@ function showUI()
 		themeColors: true,
 		width: settings.width,
 		height: settings.height,
-		visible: true,
+		visible: true
 	});
 }
 

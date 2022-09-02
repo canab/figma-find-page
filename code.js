@@ -20,7 +20,7 @@ figma.ui.onmessage = msg => {
 };
 let settings = {
     width: 300,
-    height: 300,
+    height: 300
 };
 function findPages(result, root, query) {
     for (let node of root.children) {
@@ -125,7 +125,7 @@ function saveData(callback) {
     const storageData = {
         version: storageVersion,
         recent: recentList,
-        settings,
+        settings
     };
     figma.clientStorage
         .setAsync(documentKey, storageData)
@@ -133,12 +133,11 @@ function saveData(callback) {
 }
 figma.clientStorage.getAsync(documentKey).then((result) => {
     var _a, _b, _c, _d, _e;
-    if ((result === null || result === void 0 ? void 0 : result.version) !== storageVersion) {
-        return;
-    }
-    recentList = (_a = result.recent) !== null && _a !== void 0 ? _a : [];
-    settings.width = (_c = (_b = result.settings) === null || _b === void 0 ? void 0 : _b.width) !== null && _c !== void 0 ? _c : settings.width;
-    settings.height = (_e = (_d = result.settings) === null || _d === void 0 ? void 0 : _d.height) !== null && _e !== void 0 ? _e : settings.height;
+    if ((result === null || result === void 0 ? void 0 : result.version) !== storageVersion)
+        result = undefined;
+    recentList = (_a = result === null || result === void 0 ? void 0 : result.recent) !== null && _a !== void 0 ? _a : [];
+    settings.width = (_c = (_b = result === null || result === void 0 ? void 0 : result.settings) === null || _b === void 0 ? void 0 : _b.width) !== null && _c !== void 0 ? _c : settings.width;
+    settings.height = (_e = (_d = result === null || result === void 0 ? void 0 : result.settings) === null || _d === void 0 ? void 0 : _d.height) !== null && _e !== void 0 ? _e : settings.height;
     const data = {
         recent: recentList,
     };
@@ -151,6 +150,6 @@ function showUI() {
         themeColors: true,
         width: settings.width,
         height: settings.height,
-        visible: true,
+        visible: true
     });
 }
